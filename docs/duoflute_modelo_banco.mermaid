@@ -1,0 +1,257 @@
+erDiagram
+    %% ===== USUÁRIOS E AUTENTICAÇÃO =====
+    users {
+        int id PK
+        string email UK
+        string password_hash
+        string display_name
+        string avatar_url
+        string role "user ou admin"
+        int daily_goal_xp
+        int xp_total
+        int level
+        int current_streak
+        int longest_streak
+        boolean profile_public
+        datetime created_at
+    }
+    password_reset_tokens {
+        int id PK
+        int user_id FK
+        string token_hash
+        datetime expires_at
+        datetime used_at
+    }
+
+    %% ===== CONTEÚDO PEDAGÓGICO =====
+    sections {
+        int id PK
+        string title
+        string description
+        int position
+    }
+    units {
+        int id PK
+        int section_id FK
+        string title
+        string objective
+        int position
+    }
+    lessons {
+        int id PK
+        int unit_id FK
+        string title
+        string lesson_type "apresentacao, reconhecimento, pratica, combinacao, revisao, desafio"
+        int position
+        int xp_reward
+        boolean is_essential
+    }
+    exercises {
+        int id PK
+        int lesson_id FK
+        string exercise_type "multipla_escolha, identificar_digitacao, ouvir_e_reconhecer, executar"
+        int position
+        int difficulty
+        jsonb content "pergunta, opcoes, resposta correta, dicas"
+    }
+
+    %% ===== NOTAS, DIGITAÇÕES E MÚSICAS =====
+    notes {
+        int id PK
+        int introduced_in_unit_id FK
+        string name_pt "Si, La, Sol, Do agudo, Re agudo"
+        string scientific_name "B4, A4, G4, C5, D5"
+        float frequency_hz
+        int staff_position
+    }
+    fingerings {
+        int id PK
+        int note_id FK
+        jsonb holes "polegar e furos 1 a 7: aberto, fechado ou meio furo"
+    }
+    songs {
+        int id PK
+        int required_unit_id FK
+        string title
+        string composer
+        int difficulty
+        int bpm
+        string time_signature
+        string license_type "dominio publico, tradicional, licenciada"
+    }
+    song_notes {
+        int id PK
+        int song_id FK
+        int note_id FK
+        int position
+        int measure
+        string duration "semibreve, minima, seminima, colcheia"
+    }
+
+    %% ===== PROGRESSO DO ALUNO =====
+    user_lesson_progress {
+        int user_id PK, FK
+        int lesson_id PK, FK
+        string status "bloqueada, disponivel, concluida"
+        int best_score
+        int attempts
+        datetime completed_at
+    }
+    exercise_attempts {
+        int id PK
+        int user_id FK
+        int exercise_id FK
+        boolean is_correct
+        int response_time_ms
+        datetime answered_at
+    }
+    user_note_mastery {
+        int user_id PK, FK
+        int note_id PK, FK
+        float mastery_level "0 a 1"
+        datetime last_practiced_at
+        datetime next_review_at
+    }
+    user_song_progress {
+        int user_id PK, FK
+        int song_id PK, FK
+        string status
+        int best_score
+        datetime completed_at
+    }
+
+    %% ===== GAMIFICAÇÃO =====
+    xp_events {
+        int id PK
+        int user_id FK
+        int amount
+        string source_type "lesson, song, mission, achievement"
+        int source_id
+        datetime created_at
+    }
+    user_activity_days {
+        int user_id PK, FK
+        date activity_date PK
+        int xp_earned
+        boolean goal_met
+    }
+    achievements {
+        int id PK
+        string code UK
+        string title
+        string description
+        string icon
+        jsonb condition
+        int xp_reward
+    }
+    user_achievements {
+        int user_id PK, FK
+        int achievement_id PK, FK
+        datetime unlocked_at
+    }
+    missions {
+        int id PK
+        string title
+        string period "diaria ou semanal"
+        string target_type
+        int target_value
+        int xp_reward
+    }
+    user_missions {
+        int id PK
+        int user_id FK
+        int mission_id FK
+        int progress
+        date period_start
+        datetime completed_at
+    }
+
+    %% ===== COMUNIDADE =====
+    posts {
+        int id PK
+        int user_id FK
+        int achievement_id FK "opcional, se for conquista compartilhada"
+        string content
+        string visibility "publico, amigos"
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+    post_media {
+        int id PK
+        int post_id FK
+        string media_type "foto ou video"
+        string storage_key
+        string mime_type
+        int size_bytes
+    }
+    comments {
+        int id PK
+        int post_id FK
+        int user_id FK
+        string content
+        datetime created_at
+        datetime deleted_at
+    }
+    likes {
+        int user_id PK, FK
+        int post_id PK, FK
+        datetime created_at
+    }
+    reports {
+        int id PK
+        int reporter_id FK
+        int post_id FK "opcional"
+        int comment_id FK "opcional"
+        int reviewed_by FK "opcional"
+        string reason
+        string status "pendente, procedente, improcedente"
+        datetime created_at
+    }
+    friendships {
+        int user_id PK, FK
+        int friend_id PK, FK
+        string status "pendente ou aceita"
+        datetime created_at
+    }
+
+    %% ===== RELACIONAMENTOS =====
+    users ||--o{ password_reset_tokens : "solicita"
+
+    sections ||--|{ units : "contem"
+    units ||--|{ lessons : "contem"
+    lessons ||--|{ exercises : "contem"
+
+    units ||--o{ notes : "introduz"
+    notes ||--|| fingerings : "possui"
+    units ||--o{ songs : "libera"
+    songs ||--|{ song_notes : "composta por"
+    notes ||--o{ song_notes : "usada em"
+
+    users ||--o{ user_lesson_progress : "avanca"
+    lessons ||--o{ user_lesson_progress : "registra"
+    users ||--o{ exercise_attempts : "tenta"
+    exercises ||--o{ exercise_attempts : "recebe"
+    users ||--o{ user_note_mastery : "domina"
+    notes ||--o{ user_note_mastery : "avalia"
+    users ||--o{ user_song_progress : "toca"
+    songs ||--o{ user_song_progress : "registra"
+
+    users ||--o{ xp_events : "ganha"
+    users ||--o{ user_activity_days : "pratica"
+    users ||--o{ user_achievements : "desbloqueia"
+    achievements ||--o{ user_achievements : "concedida em"
+    users ||--o{ user_missions : "recebe"
+    missions ||--o{ user_missions : "atribuida em"
+
+    users ||--o{ posts : "publica"
+    achievements |o--o{ posts : "pode ilustrar"
+    posts ||--o{ post_media : "anexa"
+    posts ||--o{ comments : "recebe"
+    users ||--o{ comments : "escreve"
+    users ||--o{ likes : "curte"
+    posts ||--o{ likes : "recebe"
+    users ||--o{ reports : "denuncia"
+    posts |o--o{ reports : "alvo"
+    comments |o--o{ reports : "alvo"
+    users ||--o{ friendships : "tem"

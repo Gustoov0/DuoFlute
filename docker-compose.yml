@@ -1,0 +1,136 @@
+# =====================================================================
+# DuoFlute - esboço do docker-compose.yml
+# Subir tudo:            docker compose up --build
+# Escalar o back-end:    docker compose up --build --scale backend=3
+# Derrubar:              docker compose down   (use -v para apagar os dados)
+# =====================================================================
+
+services:
+
+  # ---------- Ponto único de entrada (proxy reverso / balanceador) ----------
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"                      # única porta exposta ao mundo exterior
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - public-net
+    restart: unless-stopped
+
+  # ---------- Front-end (React compilado, servido por um Nginx interno) ----------
+  frontend:
+    build:
+      context: ./frontend            # Dockerfile multi-stage: node (build) -> nginx (serve)
+    expose:
+      - "80"
+    networks:
+      - public-net
+    restart: unless-stopped
+
+  # ---------- Back-end (API FastAPI) ----------
+  backend:
+    build:
+      context: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL: redis://cache:6379/0
+    # Aplica as migrações e sobe a API
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    expose:
+      - "8000"                       # sem "ports": só o gateway enxerga a API
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - public-net                   # para conversar com o gateway
+      - private-net                  # para conversar com o banco e o Redis
+    restart: unless-stopped
+
+  # ---------- Banco de dados ----------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # dados persistem entre reinicializações
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - private-net                  # inacessível de fora
+    restart: unless-stopped
+
+  # ---------- Cache / ranking ----------
+  cache:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - private-net
+    restart: unless-stopped
+
+  # =====================================================================
+  # FASE 3 (opcional): descomente quando for implementar
+  # =====================================================================
+
+  # worker:                          # tarefas assíncronas (conquistas, ranking, áudio)
+  #   build:
+  #     context: ./backend
+  #   command: celery -A app.worker worker --loglevel=info
+  #   env_file: .env
+  #   environment:
+  #     DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  #     REDIS_URL: redis://cache:6379/0
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     cache:
+  #       condition: service_healthy
+  #   networks:
+  #     - private-net
+
+  # storage:                         # armazenamento de fotos e vídeos (compatível com S3)
+  #   image: minio/minio:latest
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_USER}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+  #   volumes:
+  #     - miniodata:/data
+  #   networks:
+  #     - private-net
+
+# ---------- Redes ----------
+networks:
+  public-net:                        # gateway <-> frontend <-> backend
+  private-net:                       # backend <-> db <-> cache (isolada)
+    internal: true                   # sem acesso à internet nem ao host
+
+# ---------- Volumes ----------
+volumes:
+  pgdata:
+  redisdata:
+  # miniodata:
