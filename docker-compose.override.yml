@@ -1,12 +1,16 @@
 # Configurações APENAS para desenvolvimento.
 # O Docker Compose carrega este arquivo automaticamente junto com o docker-compose.yml.
+# Para IGNORÁ-LO (ex.: teste com várias réplicas), use:  docker compose -f docker-compose.yml ...
 services:
   backend:
     ports:
-      - "8000:8000"                  # permite acessar a API direto em localhost:8000
+      - "8000:8000"                  # acesso direto à API em localhost:8000 (só 1 réplica)
     volumes:
       - ./backend/app:/app/app       # código editado no seu PC aparece no container
-      - ./backend/alembic:/app/alembic   # migrações geradas no container aparecem no seu PC
-    command: >
-      sh -c "alembic upgrade head &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      - ./backend/alembic:/app/alembic
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  migrate:
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic   # usa as migrações mais recentes do seu PC
