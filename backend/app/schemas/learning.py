@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FingeringOut(BaseModel):
@@ -67,3 +67,12 @@ class SectionOut(BaseModel):
     description: str | None
     position: int
     units: list[UnitOut]
+
+
+class AnswerIn(BaseModel):
+    answer: str = Field(min_length=1, max_length=50)
+
+
+class AnswerOut(BaseModel):
+    correct: bool
+    correct_answer: str

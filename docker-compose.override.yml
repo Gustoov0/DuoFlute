@@ -14,3 +14,11 @@ services:
     volumes:
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic   # usa as migrações mais recentes do seu PC
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev                    # servidor Vite com recarga automática (HMR)
+    volumes:
+      - ./frontend:/app              # edite os arquivos no seu PC e veja no navegador
+      - /app/node_modules            # mantém as dependências instaladas dentro do container

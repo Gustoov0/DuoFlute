@@ -13,7 +13,7 @@ from app.routers import auth, learning, users
 app = FastAPI(
     title="DuoFlute API",
     description="API do sistema de aprendizagem de flauta doce.",
-    version="0.4.0",
+    version="0.5.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
 )

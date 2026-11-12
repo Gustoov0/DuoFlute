@@ -1,79 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DuoFlute</title>
-  <style>
-    :root { --bg:#fafafa; --fg:#1f2933; --card:#ffffff; --line:#d9dee3; --accent:#2f7d4f; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#16191c; --fg:#e8ecef; --card:#1f2327; --line:#33393f; --accent:#5fbf86; }
-    }
-    body { font-family: system-ui, sans-serif; background:var(--bg); color:var(--fg);
-           max-width:640px; margin:3rem auto; padding:0 1rem; }
-    h1 { margin-bottom:.25rem; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
-            padding:1rem 1.25rem; margin-top:1.5rem; }
-    button { background:var(--accent); color:#fff; border:0; border-radius:8px;
-             padding:.6rem 1rem; font-size:1rem; cursor:pointer; }
-    table { width:100%; border-collapse:collapse; margin-top:1rem; }
-    td, th { text-align:left; padding:.4rem .25rem; border-bottom:1px solid var(--line); }
-    code { font-size:.9em; }
-  </style>
-</head>
-<body>
-  <h1>DuoFlute</h1>
-  <p>Página provisória do front-end. Teste do balanceamento de carga.</p>
-
-  <div class="card">
-    <button id="btn">Fazer 10 requisições à API</button>
-    <p id="status">Clique para começar.</p>
-    <table id="tabela" hidden>
-      <thead><tr><th>Container que respondeu</th><th>Respostas</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <script>
-    const btn = document.getElementById("btn");
-    const status = document.getElementById("status");
-    const tabela = document.getElementById("tabela");
-
-    btn.addEventListener("click", async () => {
-      btn.disabled = true;
-      status.textContent = "Consultando /api/health...";
-      const contagem = {};
-      let falhas = 0;
-
-      for (let i = 0; i < 10; i++) {
-        try {
-          const r = await fetch("/api/health", { cache: "no-store" });
-          const dados = await r.json();
-          contagem[dados.container] = (contagem[dados.container] || 0) + 1;
-        } catch (e) {
-          falhas++;
-        }
-      }
-
-      const corpo = tabela.querySelector("tbody");
-      corpo.innerHTML = "";
-      for (const [nome, qtd] of Object.entries(contagem)) {
-        const tr = document.createElement("tr");
-        const tdNome = document.createElement("td");
-        const code = document.createElement("code");
-        code.textContent = nome;
-        tdNome.appendChild(code);
-        const tdQtd = document.createElement("td");
-        tdQtd.textContent = qtd;
-        tr.append(tdNome, tdQtd);
-        corpo.appendChild(tr);
-      }
-      tabela.hidden = false;
-      status.textContent = falhas
-        ? `Concluído, com ${falhas} falha(s).`
-        : "Concluído sem falhas.";
-      btn.disabled = false;
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>DuoFlute</title>
+  </head>
+  <body class="bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
