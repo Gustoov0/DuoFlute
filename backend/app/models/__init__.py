@@ -2,3 +2,9 @@
 from app.models.user import User  # noqa: F401
 from app.models.learning import Section, Unit, Lesson, Exercise  # noqa: F401
 from app.models.music import Note, Fingering  # noqa: F401
+from app.models.progress import (  # noqa: F401
+    ExerciseAttempt,
+    UserActivityDay,
+    UserLessonProgress,
+    XpEvent,
+)

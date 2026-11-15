@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expire_minutes: int = 60
     redis_url: str = ""
+    # Fuso usado para decidir "que dia é hoje" (ofensiva e meta diária)
+    timezone: str = "America/Sao_Paulo"
 
 
 settings = Settings()

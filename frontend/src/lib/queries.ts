@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "./api";
-import type { LessonDetail, Note, Section } from "./types";
+import type { LessonDetail, LessonProgress, Note, ProgressSummary, Section } from "./types";
 
 export function usePath() {
   return useQuery({
@@ -25,5 +25,22 @@ export function useNotes() {
     queryFn: () => api<Note[]>("/learning/notes"),
     staleTime: Infinity,
     select: (list) => new Map(list.map((note) => [note.id, note] as const)),
+  });
+}
+
+/** XP, nível, ofensiva e meta diária. */
+export function useSummary() {
+  return useQuery({
+    queryKey: ["summary"],
+    queryFn: () => api<ProgressSummary>("/progress/summary"),
+  });
+}
+
+/** Estado de cada lição (concluída, disponível, bloqueada), indexado pelo id da lição. */
+export function useLessonStatuses() {
+  return useQuery({
+    queryKey: ["lessonStatuses"],
+    queryFn: () => api<LessonProgress[]>("/progress/lessons"),
+    select: (list) => new Map(list.map((item) => [item.lesson_id, item] as const)),
   });
 }

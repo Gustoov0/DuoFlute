@@ -105,3 +105,45 @@ export interface PlayContent {
   sequence: { note_id: number; duration: string }[];
   checklist?: string[];
 }
+
+// ---------- Progresso e gamificação ----------
+export interface ProgressSummary {
+  xp_total: number;
+  level: number;
+  xp_into_level: number;
+  xp_per_level: number;
+  current_streak: number;
+  longest_streak: number;
+  daily_goal_xp: number;
+  xp_today: number;
+  goal_met_today: boolean;
+  active_today: boolean;
+}
+
+export type LessonStatus = "concluida" | "disponivel" | "bloqueada";
+
+export interface LessonProgress {
+  lesson_id: number;
+  status: LessonStatus;
+  best_score: number | null;
+  attempts: number | null;
+  completed_at: string | null;
+}
+
+export interface LessonResult {
+  xp_earned: number;
+  first_completion: boolean;
+  perfect: boolean;
+  score: number;
+  correct: number;
+  total: number;
+  xp_total: number;
+  level: number;
+  leveled_up: boolean;
+  current_streak: number;
+  streak_increased: boolean;
+  xp_today: number;
+  daily_goal_xp: number;
+  goal_reached_now: boolean;
+  next_lesson_id: number | null;
+}

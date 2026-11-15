@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
-from app.models import Exercise, Lesson, Note, Section, Unit, User
+from app.models import Exercise, ExerciseAttempt, Lesson, Note, Section, Unit, User
 from app.schemas.learning import AnswerIn, AnswerOut, LessonDetail, NoteOut, SectionOut
 
 router = APIRouter(prefix="/learning", tags=["Aprendizagem"])
@@ -71,4 +71,10 @@ def answer_exercise(
         )
 
     correct_answer = str(solution["correct"])
-    return AnswerOut(correct=data.answer == correct_answer, correct_answer=correct_answer)
+    is_correct = data.answer == correct_answer
+
+    # Registra a tentativa: alimenta o cálculo de acertos e as estatísticas
+    db.add(ExerciseAttempt(user_id=current_user.id, exercise_id=exercise.id, is_correct=is_correct))
+    db.commit()
+
+    return AnswerOut(correct=is_correct, correct_answer=correct_answer)

@@ -6,14 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models import User
-from app.routers import auth, learning, users
+from app.routers import auth, learning, progress, users
 
 # Todas as rotas ficam sob /api, igual ao que o Nginx vai encaminhar depois.
 # A documentação automática (Swagger) também fica sob /api.
 app = FastAPI(
     title="DuoFlute API",
     description="API do sistema de aprendizagem de flauta doce.",
-    version="0.5.0",
+    version="0.6.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
 )
@@ -48,3 +48,4 @@ app.include_router(system_router)
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(learning.router, prefix="/api")
+app.include_router(progress.router, prefix="/api")
