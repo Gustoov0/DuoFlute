@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.redis_client import get_redis
 from app.models import User
 from app.routers import auth, learning, progress, ranking, users
+from fastapi.middleware.cors import CORSMiddleware
 
 # Todas as rotas ficam sob /api, igual ao que o Nginx vai encaminhar depois.
 # A documentação automática (Swagger) também fica sob /api.
@@ -18,6 +19,16 @@ app = FastAPI(
     version="0.7.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://duoflute.pages.dev",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 system_router = APIRouter(prefix="/api", tags=["Sistema"])
