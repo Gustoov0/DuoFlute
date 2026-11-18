@@ -65,6 +65,7 @@ function LessonRunner({ id }: { id: number }) {
         queryClient.invalidateQueries({ queryKey: ["summary"] }),
         queryClient.invalidateQueries({ queryKey: ["lessonStatuses"] }),
         queryClient.invalidateQueries({ queryKey: ["me"] }),
+        queryClient.invalidateQueries({ queryKey: ["ranking"] }),
       ]);
     },
   });

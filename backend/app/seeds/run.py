@@ -14,6 +14,7 @@ from sqlalchemy import func, select, text
 
 from app.core.database import SessionLocal
 from app.models import Exercise, Fingering, Lesson, Note, Section, Unit
+from app.services.cache import invalidate
 
 rng = random.Random(42)  # semente fixa: o conteúdo gerado é sempre o mesmo
 
@@ -352,6 +353,9 @@ def run(reset: bool = False):
 
         fill_section_3_lessons(units3, notes)
         db.commit()
+
+        # O conteúdo mudou: descarta o cache do Redis para os alunos verem o novo
+        invalidate("cache:learning:*")
 
         for label, model in [("seções", Section), ("unidades", Unit), ("lições", Lesson),
                              ("exercícios", Exercise), ("notas", Note), ("digitações", Fingering)]:

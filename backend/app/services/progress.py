@@ -1,12 +1,11 @@
 """Regras de progresso, XP, nível, ofensiva e desbloqueio de lições."""
-from datetime import date, datetime, timedelta
-from zoneinfo import ZoneInfo
+from datetime import timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
+from app.core.clock import today_local
 from app.models import (
     Exercise,
     ExerciseAttempt,
@@ -19,14 +18,10 @@ from app.models import (
     XpEvent,
 )
 from app.schemas.progress import LessonResult, ProgressSummary
+from app.services import ranking
 
 LEVEL_XP = 100          # XP necessário por nível
 PERFECT_BONUS_XP = 5    # bônus por acertar tudo na primeira conclusão
-
-
-def today_local() -> date:
-    """Data de 'hoje' no fuso configurado (e não em UTC)."""
-    return datetime.now(ZoneInfo(settings.timezone)).date()
 
 
 def level_for(xp_total: int) -> int:
@@ -201,6 +196,10 @@ def complete_lesson(db: Session, user_id: int, lesson_id: int) -> LessonResult:
         user.level = level_for(user.xp_total)
 
     db.commit()
+
+    # O banco já está correto; agora atualiza a cópia do ranking no Redis (melhor esforço)
+    if xp_earned > 0:
+        ranking.record_xp(db, user.id)
 
     # --- Próxima lição liberada? ---
     after = lesson_statuses(db, user.id)

@@ -1,5 +1,21 @@
+# Variáveis de ambiente
 .env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
+*.py[cod]
 .venv/
+
+# Node.js
 node_modules/
 dist/
+
+# Testes e ferramentas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Sistema operacional
+.DS_Store

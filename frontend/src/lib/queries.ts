@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "./api";
-import type { LessonDetail, LessonProgress, Note, ProgressSummary, Section } from "./types";
+import type {
+  LessonDetail,
+  LessonProgress,
+  Note,
+  ProgressSummary,
+  Section,
+  WeeklyRanking,
+} from "./types";
 
 export function usePath() {
   return useQuery({
@@ -42,5 +49,14 @@ export function useLessonStatuses() {
     queryKey: ["lessonStatuses"],
     queryFn: () => api<LessonProgress[]>("/progress/lessons"),
     select: (list) => new Map(list.map((item) => [item.lesson_id, item] as const)),
+  });
+}
+
+/** Ranking semanal de XP. Atualiza sozinho a cada 15 segundos. */
+export function useWeeklyRanking() {
+  return useQuery({
+    queryKey: ["ranking", "weekly"],
+    queryFn: () => api<WeeklyRanking>("/ranking/weekly?limit=10"),
+    refetchInterval: 15_000,
   });
 }

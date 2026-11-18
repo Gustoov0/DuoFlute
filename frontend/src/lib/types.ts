@@ -147,3 +147,20 @@ export interface LessonResult {
   goal_reached_now: boolean;
   next_lesson_id: number | null;
 }
+
+// ---------- Ranking ----------
+export interface RankingEntry {
+  rank: number;
+  user_id: number;
+  display_name: string;
+  xp: number;
+  is_me: boolean;
+}
+
+export interface WeeklyRanking {
+  week_start: string;
+  week_end: string;
+  source: "redis" | "database";
+  entries: RankingEntry[];
+  me: { rank: number; xp: number } | null;
+}

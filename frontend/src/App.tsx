@@ -7,6 +7,7 @@ import LearnPage from "./pages/LearnPage";
 import LessonPage from "./pages/LessonPage";
 import ProfilePage from "./pages/ProfilePage";
 import ComingSoonPage from "./pages/ComingSoonPage";
+import ProgressPage from "./pages/ProgressPage";
 
 export default function App() {
   return (
@@ -26,10 +27,7 @@ export default function App() {
             path="musicas"
             element={<ComingSoonPage title="Músicas" text="Repertório com partituras e desafios de execução." />}
           />
-          <Route
-            path="progresso"
-            element={<ComingSoonPage title="Progresso" text="XP, ofensivas, estatísticas e conquistas." />}
-          />
+          <Route path="progresso" element={<ProgressPage />} />
           <Route
             path="comunidade"
             element={<ComingSoonPage title="Comunidade" text="Publicações, curtidas e comentários dos alunos." />}

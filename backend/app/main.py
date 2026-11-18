@@ -1,19 +1,21 @@
 import socket
 
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, Depends, FastAPI, HTTPException
+from redis.exceptions import RedisError
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.redis_client import get_redis
 from app.models import User
-from app.routers import auth, learning, progress, users
+from app.routers import auth, learning, progress, ranking, users
 
 # Todas as rotas ficam sob /api, igual ao que o Nginx vai encaminhar depois.
 # A documentação automática (Swagger) também fica sob /api.
 app = FastAPI(
     title="DuoFlute API",
     description="API do sistema de aprendizagem de flauta doce.",
-    version="0.6.0",
+    version="0.7.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
 )
@@ -44,8 +46,24 @@ def health_db(db: Session = Depends(get_db)):
     return {"status": "ok", "database": "conectado", "total_users": total_users}
 
 
+@system_router.get("/health/cache")
+def health_cache():
+    """Verifica a conexão com o Redis."""
+    r = get_redis()
+    if r is None:
+        raise HTTPException(503, "Redis não configurado.")
+    try:
+        r.ping()
+        keys = r.dbsize()
+        memory = r.info("memory")["used_memory_human"]
+    except RedisError as exc:
+        raise HTTPException(503, "Redis indisponível.") from exc
+    return {"status": "ok", "cache": "conectado", "keys": keys, "used_memory": memory}
+
+
 app.include_router(system_router)
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(learning.router, prefix="/api")
 app.include_router(progress.router, prefix="/api")
+app.include_router(ranking.router, prefix="/api")
