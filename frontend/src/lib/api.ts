@@ -56,8 +56,9 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   if (auth && token) headers["Authorization"] = `Bearer ${token}`;
 
   let response: Response;
+  const API_URL = import.meta.env.VITE_API_URL;
   try {
-    response = await fetch(`/api${path}`, {
+    response = await fetch(`${API_URL}/api${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
